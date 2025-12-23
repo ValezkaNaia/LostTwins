@@ -1,67 +1,92 @@
-import React, { useRef } from 'react';
-import { motion, useScroll, useSpring } from 'framer-motion';
+import React from 'react';
+import { motion } from 'framer-motion';
 import { storyData } from '../data/Story';
 import '../styles/intro.css';
 
 const Intro = ({ onStart }) => {
-  // Referência para o contentor do scroll
-  const containerRef = useRef(null);
-  
-  // Lógica da Barra de Progresso
-  const { scrollYProgress } = useScroll({ container: containerRef });
-  const scaleY = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
+  // Configurações de animação para o título com efeito Staggered
+  const titleContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.12, delayChildren: 0.2 }
+    }
+  };
+
+  const letterItem = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+  };
 
   return (
-    <div className="slideshow-wrapper" ref={containerRef}>
-      <div className="fuzzy-overlay"></div>
+    <div className="slideshow-wrapper">
+      {/* fundo tipo aura*/}
+      <div className="aura-container">
+        <div className="aura blue" />
+        <div className="aura green" />
+      </div>
       
-      {/* BARRA DE PROGRESSO LATERAL */}
-      <motion.div className="side-progress-bar" style={{ scaleY }} />
-      <div className="side-progress-track" />
+      <div className="fuzzy-overlay" />
 
-      {/* SLIDE DO LOGO */}
+      {/* barra progesso */}
+      <nav className="vertical-nav">
+        {storyData.map((_, i) => (
+          <div key={i} className="nav-dot" />
+        ))}
+      </nav>
+
+      {/* slides*/}
       <section className="slide hero-slide">
         <motion.img 
           src="/assets/images/Homepage.png" 
-          initial={{ opacity: 0, scale: 0.8 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.5 }}
+          initial={{ scale: 1.1, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 2 }}
           className="main-logo"
         />
-        <div className="mouse-scroll-icon" />
+        <div className="scroll-hint">
+          <span>SCROLL TO BEGIN</span>
+          <div className="line" />
+        </div>
       </section>
 
-      {/* SLIDES DA HISTÓRIA */}
+      {/* hist */}
       {storyData.map((scene, index) => (
         <section key={index} className="slide story-slide">
           <div className="slide-content">
-            <div className="visual-side">
-              <motion.div 
-                className="img-container"
-                initial={{ rotateY: 90, opacity: 0 }}
-                whileInView={{ rotateY: 0, opacity: 1 }}
-                transition={{ duration: 1, ease: "easeOut" }}
-              >
+            <motion.div 
+              className="visual-side"
+              initial={{ x: -100, opacity: 0 }}
+              whileInView={{ x: 0, opacity: 1 }}
+              transition={{ duration: 1, ease: "easeOut" }}
+            >
+              <div className="img-container">
                 <img src={scene.image} alt={scene.title} />
-              </motion.div>
-            </div>
+              </div>
+            </motion.div>
 
             <div className="text-side">
-              {/* Título com animação de letras inspirada no React Bits */}
-              <motion.h2 
-                className="modern-title"
-                initial={{ opacity: 0, x: -50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.8 }}
+              <motion.div 
+                variants={titleContainer}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: false }}
               >
-                {scene.title}
-              </motion.h2>
+                {/* Divide o título em palavras para o efeito Staggered */}
+                <h2 className="modern-title">
+                  {scene.title.split(" ").map((word, i) => (
+                    <motion.span key={i} variants={letterItem} style={{ display: 'inline-block', marginRight: '10px' }}>
+                      {word}
+                    </motion.span>
+                  ))}
+                </h2>
+              </motion.div>
 
               <motion.div 
                 className="glass-card"
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4 }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.8 }}
               >
                 <p>{scene.text}</p>
               </motion.div>
@@ -70,15 +95,15 @@ const Intro = ({ onStart }) => {
         </section>
       ))}
 
-      {/* BOTÃO FINAL MAGNÉTICO */}
+      {/* ultimo slide da hist */}
       <section className="slide final-slide">
         <motion.button 
           className="modern-play-btn"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+          whileHover={{ scale: 1.05, letterSpacing: "8px" }}
+          whileTap={{ scale: 0.95 }}
           onClick={onStart}
         >
-         Começa a tua aventura!
+          START!
         </motion.button>
       </section>
     </div>
