@@ -21,6 +21,7 @@
   overflow-y: scroll;
   scroll-snap-type: y mandatory; /* Força o scroll a parar em cada slide */
   position: relative;
+  scroll-behavior: smooth;
 }
 
 .slideshow-wrapper::-webkit-scrollbar {
@@ -37,7 +38,24 @@
   pointer-events: none;
   z-index: 99;
 }
-/* definiçõe dos slides */
+
+/* --------------------------------------------------
+   ANIMATION: UNIFIED FADE IN (TEXT + IMAGE)
+   --------------------------------------------------
+*/
+
+@keyframes revealUnified {
+  from {
+    opacity: 0;
+    filter: blur(10px); /* Começa invisível e desfocado */
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);    /* Fica nítido e visível */
+  }
+}
+
+/* definições dos slides */
 .slide {
   height: 100vh;
   width: 100%;
@@ -57,6 +75,16 @@
   justify-content: space-between;
   gap: 60px;
   z-index: 2;
+
+  /* --- ANIMAÇÃO UNIFICADA AQUI --- */
+  /* Aplica o fade a todo o container (imagem + texto) junto */
+  animation: revealUnified linear both; 
+  
+  /* Modern CSS: A animação baseia-se na posição do scroll */
+  animation-timeline: view();
+  
+  /* A animação começa quando entra 25% e termina no meio (50%) da tela */
+  animation-range: entry 25% cover 50%;
 }
 
 /* settings das imagens */
@@ -74,6 +102,16 @@
   overflow: hidden;
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
   border: 1px solid var(--glass-border); /* borda sutil para o efeito glassmorphism */
+  position: relative;
+  transition: transform 0.4s ease; /* Apenas para hover, se quiser adicionar */
+}
+
+.img-container::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.4));
+  pointer-events: none;
 }
 
 .img-container img {
@@ -166,13 +204,13 @@
   box-shadow: 0 0 40px rgba(74, 144, 226, 0.6);
 }
 
-/* anims*/
+/* anims */
 @keyframes pulse {
-  0%, 100% { opacity: 0.3; transform: translateY(0); }
-  50% { opacity: 0.7; transform: translateY(10px); }
+  0%, 100% { opacity: 0.10; transform: translateY(0); }
+  50% { opacity: 0.; transform: translateY(10px); }
 }
 
-/*responsividade */
+/* responsividade */
 @media (max-width: 1024px) {
   .slide-content {
     flex-direction: column;
@@ -195,7 +233,7 @@
   }
 }
 
-/* auras do fundo dinamico*/
+/* auras do fundo dinamico */
 .aura-container {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
@@ -249,7 +287,7 @@
   border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
-/* Indicador de scroll tip*/
+/* Indicador de scroll tip */
 .scroll-hint {
   position: absolute;
   bottom: 40px;
@@ -274,18 +312,3 @@
   50% { height: 60px; opacity: 1; }
   100% { height: 0; opacity: 0; }
 }
-
-/* borda redonda das imagens*/
-.img-container {
-  position: relative;
-  transition: transform 0.8s cubic-bezier(0.2, 1, 0.3, 1);
-}
-
-.img-container::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.4));
-  pointer-events: none;
-}
-

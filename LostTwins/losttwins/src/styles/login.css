@@ -1,162 +1,178 @@
-/* Reutilização das variáveis do Intro para consistência */
 :root {
   --primary-blue: #4a90e2;
-  --light-blue: #a3d8f4;
-  --bg-dark: rgb(187, 187, 187);
-  --glass-bg: rgba(182, 179, 179, 0.03);
+  --glass-bg: rgba(255, 255, 255, 0.05); /* Mais claro/transparente */
   --glass-border: rgba(255, 255, 255, 0.1);
-  --input-bg: rgba(134, 172, 157, 0.4);
+  --text-white: #ffffff;
+  --text-dim: #a1a1aa;
 }
 
-/* Fundo escuro que cobre o ecrã (Overlay) */
+/* Fundo do Overlay */
 .login-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(240, 184, 184, 0.377); /* Fundo escuro semi-transparente */
-  backdrop-filter: blur(8px); /* Desfoca o jogo/intro atrás */
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.6); /* Menos escuro para veres o jogo atrás */
+  backdrop-filter: blur(10px);
   z-index: 3000;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-/* O Cartão de Login (Estilo Glassmorphism igual à Intro) */
+/* Cartão Principal */
 .login-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(20, 20, 30, 0.6); /* Levemente escuro mas translúcido */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   padding: 40px;
   border-radius: 24px;
   border: 1px solid var(--glass-border);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5); /* Sombra suave */
   width: 90%;
   max-width: 400px;
   position: relative;
   text-align: center;
-  overflow: hidden;
 }
 
-/* Título com o mesmo gradiente da Intro */
 .login-title {
   font-family: 'Cinzel', serif;
   font-size: 2rem;
-  margin-bottom: 30px;
-  font-weight: 700;
-  background: linear-gradient(90deg, var(--primary-blue), var(--light-blue));
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-transform: uppercase;
-  letter-spacing: 2px;
+  margin-bottom: 25px;
+  color: white;
+  text-shadow: 0 0 15px rgba(74, 144, 226, 0.6);
 }
 
-/* Inputs personalizados */
-.custom-input {
-  width: 100%;
-  padding: 15px 20px;
+/* ... mantém o código anterior até chegar ao .custom-input ... */
+
+/* --- INPUTS CORRIGIDOS --- */
+.input-group {
+  position: relative;
   margin-bottom: 15px;
-  background: var(--input-bg);
-  border: 1px solid var(--glass-border);
+  width: 100%; /* Garante que o grupo ocupa a largura certa */
+}
+
+.input-icon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.6);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.custom-input {
+  /* --- CORREÇÃO DO TAMANHO --- */
+  box-sizing: border-box; /* Isto é OBRIGATÓRIO: impede que o padding aumente a largura total */
+  width: 100%;
+  height: 50px;
+  padding: 0 15px 0 45px; /* Espaço para o ícone */
+  
+  /* Estilo Vidro */
+  background: rgba(255, 255, 255, 0.07); 
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  color: #fff;
+  
+  color: white;
   font-family: 'Inter', sans-serif;
   font-size: 1rem;
-  transition: all 0.3s ease;
   outline: none;
+  transition: all 0.3s ease;
 }
 
 .custom-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .custom-input:focus {
   border-color: var(--primary-blue);
+  background: rgba(255, 255, 255, 0.12);
   box-shadow: 0 0 15px rgba(74, 144, 226, 0.2);
-  transform: translateY(-2px);
-  background: rgba(0, 0, 0, 0.6);
 }
 
-/* Botão de Login (Adaptação do modern-play-btn para tamanho menor) */
-.login-btn {
+/* --- REMOVER O FUNDO FEIO DO AUTOFILL (Chrome/Edge) --- */
+.custom-input:-webkit-autofill,
+.custom-input:-webkit-autofill:hover, 
+.custom-input:-webkit-autofill:focus, 
+.custom-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #24242e inset !important; /* Força um fundo escuro que combine com o tema */
+  -webkit-text-fill-color: white !important; /* Força o texto a ser branco */
+  transition: background-color 5000s ease-in-out 0s; /* Hack para manter a transparência o máximo possível */
+  border-radius: 12px !important;
+}
+
+
+/* Botão Google */
+.google-btn {
   width: 100%;
-  padding: 15px;
-  margin-top: 10px;
-  font-size: 1rem;
-  font-weight: 700;
-  font-family: 'Inter', sans-serif;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  
-  background: transparent;
-  color: var(--primary-blue);
-  border: 1px solid var(--primary-blue);
-  border-radius: 50px;
-  cursor: pointer;
-  transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.login-btn:hover {
-  background: var(--primary-blue);
-  color: white;
-  box-shadow: 0 0 30px rgba(74, 144, 226, 0.5);
-  transform: scale(1.02);
-}
-
-/* Botão de Fechar (X) */
-.close-btn {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: transparent;
+  height: 50px;
+  background: white;
+  color: #333;
   border: none;
-  color: rgba(255, 255, 255, 0.5);
-  cursor: pointer;
-  transition: color 0.3s ease;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: transform 0.2s;
 }
 
-.close-btn:hover {
-  color: var(--primary-blue);
-  transform: rotate(90deg);
-  transition: all 0.4s ease;
+.google-btn:hover {
+  transform: scale(1.02);
+  background: #f1f1f1;
 }
 
-/* Link para alternar entre Login/Registo */
+/* Botão Entrar */
+.primary-btn {
+  width: 100%;
+  padding: 14px;
+  margin-top: 10px;
+  background: linear-gradient(90deg, var(--primary-blue), #357abd);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1rem;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.primary-btn:hover {
+  box-shadow: 0 0 25px rgba(74, 144, 226, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Links e Texto */
 .toggle-text {
   margin-top: 20px;
+  color: rgba(255, 255, 255, 0.6);
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.5);
-  font-family: 'Inter', sans-serif;
 }
 
 .toggle-link {
   color: var(--primary-blue);
   cursor: pointer;
-  text-decoration: none;
   margin-left: 5px;
-  font-weight: 600;
-  transition: text-shadow 0.3s ease;
+  font-weight: bold;
 }
 
-.toggle-link:hover {
-  text-shadow: 0 0 10px rgba(74, 144, 226, 0.6);
-  text-decoration: underline;
+.divider {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 15px 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
-/* Aura subtil atrás do cartão de login (Opcional, para dar profundidade) */
-.login-card::before {
-  content: '';
+.close-btn {
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(74, 144, 226, 0.1) 0%, transparent 60%);
-  z-index: -1;
-  pointer-events: none;
+  top: 15px; right: 15px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
 }
+.close-btn:hover { color: white; transform: rotate(90deg); transition: 0.3s; }

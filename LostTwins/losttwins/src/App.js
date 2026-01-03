@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './login/supabase';
-import { motion } from 'framer-motion';
 import { LogOut, User } from 'lucide-react';
 
-// Importa as tuas páginas existentes
+// Importação das páginas e componentes
 import Intro from './pages/Intro';
 import Game from './pages/Game'; 
 import GameOver from './pages/GameOver';
 import LoginPage from './login/loginpage';
-
 import './App.css';
 
 function App() {
@@ -18,7 +16,6 @@ function App() {
   const [lastScore, setLastScore] = useState(0);
   const [leaderboard, setLeaderboard] = useState([]);
 
-  // 1. Gestão de Sessão Supabase
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -27,85 +24,74 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // 2. Função chamada quando o jogador perde
   const handleGameOver = async (score) => {
     setLastScore(score);
-    
-    // Se estiver logado, guarda na base de dados
     if (session) {
       try {
-        const { data: currentStats } = await supabase
-          .from('player_stats')
-          .select('high_score')
-          .eq('user_id', session.user.id)
-          .maybeSingle();
-
-        const oldHigh = currentStats?.high_score || 0;
-        const newHigh = Math.max(oldHigh, score);
-
+        const { data: stats } = await supabase.from('player_stats').select('high_score').eq('user_id', session.user.id).maybeSingle();
+        const oldHigh = stats?.high_score || 0;
         await supabase.from('player_stats').upsert({
           user_id: session.user.id,
           user_email: session.user.email,
           last_score: score,
-          high_score: newHigh
+          high_score: Math.max(oldHigh, score)
         });
-      } catch (error) {
-        console.error("Erro ao salvar score:", error);
-      }
+      } catch (err) { console.error(err); }
     }
-
-    // Busca a leaderboard atualizada
-    await fetchLeaderboard();
+    fetchLeaderboard();
     setView('gameover');
   };
 
   const fetchLeaderboard = async () => {
-    const { data } = await supabase
-      .from('player_stats')
-      .select('user_email, high_score')
-      .order('high_score', { ascending: false })
-      .limit(5);
+    const { data } = await supabase.from('player_stats').select('user_email, high_score').order('high_score', { ascending: false }).limit(5);
     setLeaderboard(data || []);
   };
 
   return (
     <div className="App">
       
-      {/* --- HEADER (Barra de Topo) --- */}
-      <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', padding: '20px', display: 'flex', justifyContent: 'flex-end', zIndex: 2000, pointerEvents: 'none' }}>
+      {/* --- HEADER FIXO --- */}
+      {/* Padding aumentado para afastar o botão dos cantos */}
+      <div style={{ 
+        position: 'fixed', top: 0, right: 0, 
+        padding: '40px 60px', 
+        zIndex: 2000, pointerEvents: 'none' 
+      }}>
         <div style={{ pointerEvents: 'auto' }}>
           {session ? (
-            <div className="glass-card" style={{ padding: '8px 20px', display: 'flex', alignItems: 'center', gap: '10px', borderRadius: '50px' }}>
-              <User size={16} color="#4a90e2"/>
-              <span style={{fontSize: '0.9rem', color: 'white'}}>{session.user.email.split('@')[0]}</span>
-              <button onClick={() => supabase.auth.signOut()} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ff4d4d', marginLeft: '10px' }}>
-                <LogOut size={16} />
+            <div className="glass-card" style={{ padding: '10px 25px', display: 'flex', alignItems: 'center', gap: '10px', borderRadius: '50px', border: '1px solid rgba(255,255,255,0.2)' }}>
+              <User size={18} color="#4a90e2"/>
+              <span style={{color: 'white', fontWeight: 'bold'}}>{session.user.email.split('@')[0]}</span>
+              <button onClick={() => supabase.auth.signOut()} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ff4d4d', marginLeft: '5px' }}>
+                <LogOut size={18} />
               </button>
             </div>
           ) : (
+            /* ... código anterior ... */
             view === 'intro' && (
               <button 
                 onClick={() => setShowLogin(true)} 
-                className="modern-play-btn" 
-                style={{ padding: '10px 30px', fontSize: '0.9rem' }}
+                className="modern-play-btn"
+                style={{ 
+                  fontSize: '0.9rem', 
+                  padding: '12px 35px',
+                  background: 'transparent', /* <--- ADICIONA ISTO */
+                  color: '#4a90e2'           /* <--- GARANTE A COR AZUL */
+                }} 
               >
                 LOGIN
               </button>
             )
+
           )}
         </div>
       </div>
 
-      {/* --- GESTÃO DE TELAS --- */}
+      {/* --- ROTEAMENTO --- */}
+      {view === 'intro' && <Intro onStart={() => setView('game')} />}
       
-      {view === 'intro' && (
-        <Intro onStart={() => setView('game')} />
-      )}
-
-      {view === 'game' && (
-        <Game onGameOver={handleGameOver} />
-      )}
-
+      {view === 'game' && <Game onGameOver={handleGameOver} />}
+      
       {view === 'gameover' && (
         <GameOver 
           score={lastScore} 
@@ -116,10 +102,7 @@ function App() {
       )}
 
       {/* --- MODAL DE LOGIN --- */}
-      {showLogin && (
-        <LoginPage onClose={() => setShowLogin(false)} />
-      )}
-
+      {showLogin && <LoginPage onClose={() => setShowLogin(false)} />}
     </div>
   );
 }

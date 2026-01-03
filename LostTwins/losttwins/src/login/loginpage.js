@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { supabase } from './supabase'; 
 import { motion } from 'framer-motion';
-import { X } from 'lucide-react';
-import '../styles/login.css'; // <--- IMPORTANTE: Importa o CSS aqui
+import { X, Mail, Lock, Chrome } from 'lucide-react';
+import '../styles/login.css';
 
 const LoginPage = ({ onClose, onLoginSuccess }) => {
   const [email, setEmail] = useState('');
@@ -13,63 +13,66 @@ const LoginPage = ({ onClose, onLoginSuccess }) => {
   const handleAuth = async () => {
     setLoading(true);
     let result;
-    
     if (isSignUp) {
       result = await supabase.auth.signUp({ email, password });
     } else {
       result = await supabase.auth.signInWithPassword({ email, password });
     }
-
     const { error, data } = result;
-
     if (error) {
       alert(error.message);
     } else {
-      if (isSignUp) alert("Verifica o email para confirmar!");
+      if (isSignUp) alert("Verifica o email!");
       else {
         if (onLoginSuccess) onLoginSuccess(data.session);
-        onClose(); 
+        onClose();
       }
     }
     setLoading(false);
   };
 
+  const handleGoogle = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin }
+    });
+  };
+
   return (
     <div className="login-overlay">
       <motion.div 
-        initial={{ scale: 0.9, opacity: 0, y: 20 }} 
-        animate={{ scale: 1, opacity: 1, y: 0 }} 
-        exit={{ scale: 0.9, opacity: 0 }}
-        transition={{ duration: 0.3 }}
+        initial={{ scale: 0.9, opacity: 0 }} 
+        animate={{ scale: 1, opacity: 1 }} 
         className="login-card"
       >
-        <button onClick={onClose} className="close-btn">
-          <X size={24} />
+        <button onClick={onClose} className="close-btn"><X size={24}/></button>
+
+        <h2 className="login-title">{isSignUp ? 'Criar Conta' : 'Bem-vindo'}</h2>
+
+        <button onClick={handleGoogle} className="google-btn">
+          <Chrome size={20} color="#EA4335"/> Continuar com Google
         </button>
 
-        <h2 className="login-title">
-          {isSignUp ? 'Criar Conta' : 'Login'}
-        </h2>
-        
-        <input 
-          className="custom-input"
-          type="email" placeholder="Email" 
-          onChange={e => setEmail(e.target.value)}
-        />
-        <input 
-          className="custom-input"
-          type="password" placeholder="Senha" 
-          onChange={e => setPassword(e.target.value)}
-        />
+        <div className="divider">ou com email</div>
 
-        <button onClick={handleAuth} className="login-btn">
-          {loading ? 'A processar...' : (isSignUp ? 'Registar' : 'Entrar')}
+        <div className="input-group">
+          <Mail className="input-icon" size={20} />
+          <input className="custom-input" type="email" placeholder="Email" onChange={e => setEmail(e.target.value)} />
+        </div>
+
+        <div className="input-group">
+          <Lock className="input-icon" size={20} />
+          <input className="custom-input" type="password" placeholder="Senha" onChange={e => setPassword(e.target.value)} />
+        </div>
+
+        <button onClick={handleAuth} className="primary-btn">
+          {loading ? '...' : (isSignUp ? 'Registar' : 'Entrar')}
         </button>
 
         <div className="toggle-text">
           {isSignUp ? 'Já tens conta?' : 'Não tens conta?'}
           <span onClick={() => setIsSignUp(!isSignUp)} className="toggle-link">
-            {isSignUp ? 'Faz Login' : 'Regista-te'}
+            {isSignUp ? 'Entrar' : 'Registar'}
           </span>
         </div>
       </motion.div>
