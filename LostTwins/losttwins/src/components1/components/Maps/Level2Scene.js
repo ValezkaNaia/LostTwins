@@ -5,6 +5,7 @@ import AudioSystem from '../systems/AudioSystem';
 import LevelManager from '../systems/LevelManager';
 import Door from '../entities/Door';
 import NPC from '../entities/NPC';
+import HealthSystem from '../systems/HealthSystem';
 
 export default class Level2Scene extends Phaser.Scene {
     constructor() {
@@ -78,8 +79,25 @@ export default class Level2Scene extends Phaser.Scene {
         this.physics.add.collider(this.enemies, this.groundLayer);
 
         // Colisões de Combate
+       // Colisões de Combate (Atualizado com Sistema de Vida)
         this.physics.add.overlap(this.player, this.enemies, (player, enemy) => {
-            if (!enemy.isDead && !enemy.isAttacking && !enemy.isHurt) enemy.attack(player);
+            if (!enemy.isDead && !enemy.isAttacking && !enemy.isHurt) {
+                
+                // Só leva dano se não estiver invencível
+                if (!player.invencivel) {
+                    enemy.attack(player);
+                    this.levarDano(); // <--- Chama a função de perder vida
+                    
+                    // Invencibilidade temporária
+                    player.invencivel = true;
+                    player.setTint(0xff0000); // Vermelho
+
+                    this.time.delayedCall(1000, () => {
+                        player.invencivel = false;
+                        player.clearTint();
+                    });
+                }
+            }
         });
 
         this.physics.add.overlap(this.player.attackZone, this.enemies, (zone, enemy) => {
@@ -88,8 +106,13 @@ export default class Level2Scene extends Phaser.Scene {
                 this.audio.play('hit_enemy');
                 const knockbackForce = 40; 
                 const knockbackDir = (enemy.x > this.player.x) ? knockbackForce : -knockbackForce;
-                //const knockbackDir = (enemy.x > this.player.x) ? 100 : -100;
                 enemy.setVelocityX(knockbackDir);
+
+                // Award score when enemy dies
+                if (enemy.health <= 0 && !enemy.scoreAwarded) {
+                    enemy.scoreAwarded = true; // Prevent duplicate scoring
+                    this.addScore(100); // 100 points per enemy
+                }
             }
         });
 
@@ -130,6 +153,11 @@ export default class Level2Scene extends Phaser.Scene {
              this.audio.play('bg_music', { volume: 0.3, loop: true });
         }
 
+        // --- NOVO: SISTEMA DE VIDA ---
+        this.sistemaVida = new HealthSystem(3); 
+        this.listaCoracoes = []; 
+        this.criarHudVida();
+
         this.door = new Door(this, 2429, 189, 'portal_blue').setOrigin(0.5, 1);
         this.door.setDepth(10); // Garante que fica à frente de tudo
         
@@ -166,6 +194,11 @@ export default class Level2Scene extends Phaser.Scene {
         LevelManager.completeLevel(this); 
     }
 
+    addScore(points) {
+        const currentScore = this.registry.get('score');
+        this.registry.set('score', currentScore + points);
+    }
+
     update() {
         if (this.player) this.player.update();
         if (this.enemies) {
@@ -200,6 +233,52 @@ export default class Level2Scene extends Phaser.Scene {
             this.player.setVelocity(0, 0); // Para o jogador
             this.scene.pause(); // Pausa o mapa
             this.scene.launch(this.activeNPC.minigameKey, { returnScene: this.scene.key });
+        }
+    }
+
+    // --- FUNÇÕES DE HUD E VIDA ---
+
+    criarHudVida() {
+        // Limpa visuais antigos
+        this.listaCoracoes.forEach(c => c.destroy());
+        this.listaCoracoes = [];
+
+        // Ajuste para o Zoom 1.2 do Level 2
+        const startX = 120; 
+        const startY = 70;
+
+        for (let i = 0; i < this.sistemaVida.currentHealth; i++) {
+            let x = startX + (i * 40);
+            let y = startY;
+
+            let coracao = this.add.image(x, y, 'heart_icon');
+            coracao.setScrollFactor(0); // Fixa na tela
+            coracao.setDepth(100);      // Fica no topo
+            this.listaCoracoes.push(coracao);
+        }
+    }
+
+    levarDano() {
+        // 1. Lógica
+        this.sistemaVida.damage(1);
+
+        // 2. Visual (Remove o último coração)
+        if (this.listaCoracoes.length > 0) {
+            let coracao = this.listaCoracoes.pop();
+            coracao.destroy();
+        }
+
+        this.audio.play('hit_player');
+
+        // 3. Game Over
+        if (this.sistemaVida.isDead()) {
+            console.log("Game Over Level 2");
+            // Podes adicionar animação de morte aqui se tiveres ('p2_die')
+            // this.player.anims.play('p2_die'); 
+            
+            this.time.delayedCall(1000, () => {
+                this.scene.restart();
+            });
         }
     }
 }

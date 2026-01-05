@@ -120,16 +120,16 @@
         {
          "columns":12,
          "firstgid":1,
-         "image":"platformer_metroidvania asset pack v1.01\/tiles and background_foreground (new)\/tileset_32x32(new).png",
-         "imageheight":192,
-         "imagewidth":384,
+         "image":"tileset_64x64(new).png",
+         "imageheight":384,
+         "imagewidth":768,
          "margin":0,
          "name":"tileset1",
          "spacing":0,
          "tilecount":72,
-         "tileheight":32,
-         "tilewidth":32
-        }, 
+         "tileheight":64,
+         "tilewidth":64
+        },
         {
          "columns":7,
          "firstgid":73,

@@ -31,4 +31,12 @@ export default class LevelManager {
             scene.scene.start('VictoryScene');
         }
     }
+
+    static restartGame(scene) {
+        // Reset do game state
+        gameState.reset();
+        
+        // Reinicia o jogo do Level1
+        scene.scene.start('Level1');
+    }
 }

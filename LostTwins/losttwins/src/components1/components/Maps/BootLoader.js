@@ -23,7 +23,7 @@ export default class BootLoader extends Phaser.Scene {
 
         // --- CARREGAR IMAGENS / TILESETS ---
         //level1 tilesets
-        this.load.image('tiles-chao', 'assets/tileset_32x32(new).png');
+        this.load.image('tiles-chao', 'assets/tileset_64x64(new).png');
         this.load.image('tiles-background1', 'assets/bgVerde_resized.png');
         this.load.image('smoke_particle', 'assets/smoke_dot.png');
         //level2 tilesets
@@ -56,6 +56,9 @@ export default class BootLoader extends Phaser.Scene {
 
         //NPC spritesheet
         this.load.spritesheet('npc_anim', 'assets/npc_idle.png', { frameWidth: 64, frameHeight: 64 });
+
+        //Heart icon
+        this.load.image('heart_icon', 'assets/Pixel Heart Sprite Sheet 32x32.png');
 
         //Portal spritesheet
         this.load.spritesheet('portal_blue', 'assets/portal_blue.png', { frameWidth: 64, frameHeight: 64 });

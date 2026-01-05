@@ -75,8 +75,8 @@ function App() {
                 style={{ 
                   fontSize: '0.9rem', 
                   padding: '12px 35px',
-                  background: 'transparent', /* <--- ADICIONA ISTO */
-                  color: '#4a90e2'           /* <--- GARANTE A COR AZUL */
+                  background: 'transparent', 
+                  color: '#4a90e2'          
                 }} 
               >
                 LOGIN

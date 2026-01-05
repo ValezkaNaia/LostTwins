@@ -16,8 +16,8 @@ export default class VictoryScene extends Phaser.Scene {
             fontSize: '48px', fill: '#00ff00', fontStyle: 'bold'
         }).setOrigin(0.5);
 
-        const nextBtn = this.add.text(width / 2, height / 2 + 50, 'PRÓXIMO NÍVEL', {
-            fontSize: '24px', fill: '#ffffff', backgroundColor: '#222', padding: 15
+        const nextBtn = this.add.text(width / 2, height / 2 + 50, 'PARABENS! GANHASTE', {
+            fontSize: '24px', fill: '#000000ff', backgroundColor: '#ffffffff', padding: 15
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
         nextBtn.on('pointerdown', () => {

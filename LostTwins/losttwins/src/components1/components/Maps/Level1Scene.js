@@ -6,6 +6,7 @@ import AudioSystem from '../systems/AudioSystem';
 import LevelManager from '../systems/LevelManager';
 import Door from '../entities/Door';
 import NPC from '../entities/NPC';
+import HealthSystem from '../systems/HealthSystem'; 
 
 export default class Level1Scene extends Phaser.Scene {
     constructor() {
@@ -13,6 +14,14 @@ export default class Level1Scene extends Phaser.Scene {
     }
 
     create() {
+        // Initialize score and timer
+        if (!this.registry.has('score')) {
+            this.registry.set('score', 0);
+        }
+        if (!this.registry.has('startTime')) {
+            this.registry.set('startTime', Date.now());
+        }
+        
         // 1. Mapa e Camadas
         const map1 = this.make.tilemap({ key: 'level1' });
         const tilesetChao = map1.addTilesetImage('tileset1', 'tiles-chao');
@@ -27,6 +36,13 @@ export default class Level1Scene extends Phaser.Scene {
         this.audio = new AudioSystem(this);
         this.audio.init(['hit_enemy', 'hit_player', 'bg_music']);
         this.audio.play('bg_music', { volume: 0.3, loop: true });
+
+        // ... (dentro do create, após audio.init)
+        
+        // --- SISTEMA DE VIDA ---
+        this.sistemaVida = new HealthSystem(3); // Inicia com 3 vidas
+        this.listaCoracoes = []; // Array para guardar as imagens
+        this.criarHudVida(); // Desenha os corações iniciais
 
         // 3. Player
         //this.player = new Player(this, 100, 100);
@@ -62,7 +78,22 @@ export default class Level1Scene extends Phaser.Scene {
         // Dano Inimigo -> Player
         this.physics.add.overlap(this.player, this.enemies, (player, enemy) => {
             if (!enemy.isDead && !enemy.isAttacking && !enemy.isHurt) {
-                enemy.attack(player);
+                
+                // Só leva dano se NÃO estiver invencível
+                if (!player.invencivel) {
+                    enemy.attack(player); // Animação do inimigo
+                    this.levarDano();     // Tira vida e atualiza corações
+                    
+                    // Lógica de Invencibilidade Temporária
+                    player.invencivel = true;
+                    player.setTint(0xff0000); // Fica vermelho
+                    
+                    // Após 1 segundo, volta ao normal
+                    this.time.delayedCall(1000, () => {
+                        player.invencivel = false;
+                        player.clearTint();
+                    });
+                }
             }
         });
 
@@ -73,8 +104,13 @@ export default class Level1Scene extends Phaser.Scene {
                 this.audio.play('hit_enemy');
                 const knockbackForce = 40; 
                 const knockbackDir = (enemy.x > this.player.x) ? knockbackForce : -knockbackForce;
-                //const knockbackDir = (enemy.x > this.player.x) ? 100 : -100;
                 enemy.setVelocityX(knockbackDir);
+                
+                // Award score when enemy dies
+                if (enemy.health <= 0 && !enemy.scoreAwarded) {
+                    enemy.scoreAwarded = true; // Prevent duplicate scoring
+                    this.addScore(100); // 100 points per enemy
+                }
             }
         });
 
@@ -146,6 +182,70 @@ export default class Level1Scene extends Phaser.Scene {
         LevelManager.completeLevel(this); 
         
         // Após um pequeno delay ou após a VictoryScene, o Manager faz o start('Level2')
+    }
+
+    addScore(points) {
+        const currentScore = this.registry.get('score');
+        this.registry.set('score', currentScore + points);
+    }
+
+    // --- FUNÇÕES DE HUD E VIDA ---
+
+   criarHudVida() {
+        // Limpa visuais antigos
+        this.listaCoracoes.forEach(c => c.destroy());
+        this.listaCoracoes = [];
+
+        // --- AJUSTES DE POSIÇÃO ---
+        // Como tens Zoom 1.2, o (50, 50) fica fora da tela.
+        // Vamos aumentar para trazer mais para "dentro".
+        const startX = 120; // Antes era 50
+        const startY = 70; // Antes era 50
+        const espacamento = 40; // Distância entre os corações
+
+        // Cria os corações baseado na vida atual
+        for (let i = 0; i < this.sistemaVida.currentHealth; i++) {
+            // Calcula a posição de cada um
+            let x = startX + (i * espacamento);
+            let y = startY;
+
+            let coracao = this.add.image(x, y, 'heart_icon');
+            
+            // Fixa na tela
+            coracao.setScrollFactor(0); 
+            coracao.setDepth(100);
+
+            // Opcional: Se achares que os corações ficaram gigantes por causa do zoom,
+            // podes diminuir um pouco o tamanho deles aqui:
+            // coracao.setScale(0.8); 
+
+            this.listaCoracoes.push(coracao);
+        }
+    }
+
+    levarDano() {
+        // 1. Lógica
+        this.sistemaVida.damage(1);
+
+        // 2. Visual (Remove o último coração)
+        if (this.listaCoracoes.length > 0) {
+            let coracao = this.listaCoracoes.pop();
+            coracao.destroy();
+        }
+
+        // Tocar som de dano no player
+        this.audio.play('hit_player');
+
+        // 3. Game Over check
+        if (this.sistemaVida.isDead()) {
+            console.log("Game Over");
+            this.player.die(); // Se o teu player tiver animação de morte
+            
+            // Reinicia a cena após um tempo ou vai para Game Over Scene
+            this.time.delayedCall(1000, () => {
+                this.scene.restart();
+            });
+        }
     }
 
     update() {
